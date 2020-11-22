@@ -429,7 +429,7 @@ namespace Maze
                 return;
             int y0, y1;
             int axis = ChooseAxis(out y0, out y1, pts);
-            int pivot = (y0 + y1) / 2;
+            int pivot = RoundDistance(axis, (y0 + y1) / 2);
             List<Pt> l0 = new List<Pt>();
             List<Pt> l1 = new List<Pt>();
             Func<Pt,int> f=Axes[axis];
@@ -452,6 +452,8 @@ namespace Maze
                 l0.Remove(p);
             }
         }
+
+        public virtual int RoundDistance(int axis, int distance) { return distance; }
 
         int ChooseAxis(out int y0, out int y1, List<Pt> pts)
         {
@@ -941,8 +943,21 @@ namespace Maze
         public override Pt[] Neighbours(Pt pt) { return pt.Neighbours3; }
         public override Pt[] Vertices(Pt pt) { return pt.Vertices3; }
         public override Point DefPoint(Pt p) { return new Point(p.X * gw, p.Y * gh); }
-        public override Pt DefPt(Point p) { return new Pt(2 * (p.X / (gw * 2)), 2 * (p.Y / (gh * 2))); }
-        int gw = 4, gh = 4;
+        public override Pt DefPt(Point p)
+        {
+            int _x = p.X / (gw * 2) - 1, _y = p.Y / (gh * 3) - 1;
+            int ix = _x % 2, iy = _y % 2;
+            if (ix == 0)
+                if (iy == 0)
+                    return new Pt(_x * 2, _y * 3 + 2);
+                else
+                    return new Pt(_x * 2, _y * 3 + 1);
+            else if (iy == 0)
+                return new Pt(_x * 2, _y * 3 + 1);
+            else
+                return new Pt(_x * 2, _y * 3 + 2);
+        }
+        int gw = 2, gh = 2;
         public override Shapes Shape { get { return Shapes.Triangular; } }
         public override bool PlotsMidway { get { return true; } }
         public override Func<Pt, int>[] Axes
@@ -951,18 +966,32 @@ namespace Maze
             {
                 return new Func<Pt, int>[]
                 {
-                    (Pt Pt)=>Pt.X+Pt.Y,
-                    (Pt Pt)=>Pt.X-Pt.Y,
-                    (Pt Pt)=>Pt.X*2,
+                    (Pt Pt)=>3*Pt.X-2*Pt.Y,
+                    (Pt Pt)=>3*Pt.X+2*Pt.Y,
+                    (Pt Pt)=>4*Pt.Y,
                 };
             }
         }
+
+        public override int RoundDistance(int axis, int distance)
+        {
+            // Triangular grid is subdivided along a cell boundary
+            if (distance < 0)
+                return 12 - RoundDistance(axis, 12 - distance);
+            return 12 * ((distance + 6) / 12);
+        }
+
         public override void Init(Pt sz)
         {
-            for (int y = 2; y < sz.Y - 1; y += 2)
+            for (int y = 0; y < sz.Y - 6; y += 6)
             {
-                for (int x = 2; x < sz.X - 2; x += 2)
-                    SetCell(new Pt(x, y), Out);
+                for (int x = 0; x < sz.X - 4; x += 4)
+                {
+                    SetCell(new Pt(x, y + 2), Out);
+                    SetCell(new Pt(x + 2, y + 1), Out);
+                    SetCell(new Pt(x + 2, y + 5), Out);
+                    SetCell(new Pt(x, y + 4), Out);
+                }
             }
         }
     }

@@ -109,24 +109,58 @@ namespace Maze
             }
         }
 
-        bool PointsUp3 { get { return (X + Y) % 4 == 0; } }
+        int Kind3
+        {
+            get
+            {
+                int ix = X % 4, iy = Y % 6;
+                if (ix < 0)
+                    ix += 4;
+                if (iy < 0)
+                    iy += 6;
+                if (ix == 0)
+                {
+                    if (iy == 2)
+                        return 0;
+                    else if (iy == 4)
+                        return 3;
+                }
+                else if (ix == 2)
+                {
+                    if (iy == 1)
+                        return 1;
+                    else if (iy == 5)
+                        return 2;
+                }
+                return -1;
+            }
+        }
 
         public Pt[] Neighbours3
         {
             get
             {
-                if (PointsUp3)
-                    return new Pt[]{
-                        Off(-2,0),
-                        Off(2,0),
-                        Off(0,2),
-                    };
-                else
-                    return new Pt[]{
-                        Off(2,0),
-                        Off(-2,0),
-                        Off(0,-2),
-                    };
+                switch (Kind3)
+                {
+                    case 0:
+                    case 2:
+                        return new Pt[]
+                        {
+                            Off(0,2),
+                            Off(-2,-1),
+                            Off(2,-1),
+                        };
+                    case 1:
+                    case 3:
+                        return new Pt[]
+                        {
+                            Off(0,-2),
+                            Off(2,1),
+                            Off(-2,1),
+                        };
+                    default:
+                        return null;
+                }
             }
         }
 
@@ -134,18 +168,27 @@ namespace Maze
         {
             get
             {
-                if (PointsUp3)
-                    return new Pt[]{
-                        Off(-2,1),
-                        Off(0,-1),
-                        Off(2,1),
-                    };
-                else
-                    return new Pt[]{
-                        Off(2,-1),
-                        Off(0,1),
-                        Off(-2,-1),
-                    };
+                switch (Kind3)
+                {
+                    case 0:
+                    case 2:
+                        return new Pt[]
+                        {
+                            Off(2,1),
+                            Off(-2,1),
+                            Off(0,-2),
+                        };
+                    case 1:
+                    case 3:
+                        return new Pt[]
+                        {
+                            Off(-2,-1),
+                            Off(2,-1),
+                            Off(0,2),
+                        };
+                    default:
+                        return null;
+                }
             }
         }
     }
